@@ -1,0 +1,11 @@
+{
+  "$comment": "VM. studio brand manifest — see vm-brand/PLAYBOOK.md §7",
+  "group": "vlm",
+  "tagline": "Agents argue. You read the trace.",
+  "sublabel": "LANGGRAPH · CLAUDE · WEB RESEARCH · TRACES",
+  "bannerVersion": "v1",
+  "art": {
+    "file": "vlm/vlm-v1-seed203.png",
+    "seed": 203
+  }
+}
