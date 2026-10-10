@@ -1,80 +1,80 @@
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="assets/banner/hero-v1-light.svg">
-  <img alt="debater — Agents argue. You read the trace." src="assets/banner/hero-v1-dark.svg" width="100%">
+  <source media="(prefers-color-scheme: light)" srcset="assets/banner/hero-v2-light.svg">
+  <img alt="LAB-DEBATER. Agents argue. You read the trace. Experiment. A LangGraph debate agent: five roles on one Claude model, Tavily web research, two tracers." src="assets/banner/hero-v2-dark.svg" width="100%">
 </picture>
 
-![status](https://img.shields.io/badge/status-experiment-10b981?style=flat-square&labelColor=0a0a0b) ![group](https://img.shields.io/badge/VM.-vlm-8b5cf6?style=flat-square&labelColor=0a0a0b) ![stack](https://img.shields.io/badge/python-langgraph-a1a1aa?style=flat-square&labelColor=0a0a0b) ![license](https://img.shields.io/badge/license-MIT-a1a1aa?style=flat-square&labelColor=0a0a0b)
+<p align="center">
+
+[![status: experiment](https://img.shields.io/badge/status-experiment-10b981?style=flat-square&labelColor=0a0a0b)](#-05-status) [![VM. lab](https://img.shields.io/badge/VM.-lab-8b5cf6?style=flat-square&labelColor=0a0a0b)](https://github.com/VelimirMueller) [![license: MIT](https://img.shields.io/badge/license-MIT-a1a1aa?style=flat-square&labelColor=0a0a0b)](LICENSE) [![python 3.13+](https://img.shields.io/badge/python-3.13+-a1a1aa?style=flat-square&labelColor=0a0a0b)](#-02-quick-start)
+
+</p>
 
 > Agents argue. You read the trace.
 
 ```text
+██       ████   █████
+██      ██  ██  ██  ██
+██      ██████  █████
+██      ██  ██  ██  ██
+██████  ██  ██  █████
 █████   ██████  █████    ████   ██████  ██████  █████
 ██  ██  ██      ██  ██  ██  ██    ██    ██      ██  ██
 ██  ██  █████   █████   ██████    ██    █████   █████
 ██  ██  ██      ██  ██  ██  ██    ██    ██      ██ ██
 █████   ██████  █████   ██  ██    ██    ██████  ██  ██  ██
+
+ ------  a multi-role debate agent, traced twice  --------
 ```
+
+**lab-debater** runs a structured, Oxford-Union-style debate about any topic you give it.
+Five roles share one Claude model. Two of them search the live web for evidence.
+Every call lands in two trace UIs. It is a learning playground. The agents do not know that.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/stats-v2-dark.svg">
+  <img alt="6 GRAPH NODES. 4 TOOL CALLS PER TURN. 2 TRACERS PER RUN. 1 CLAUDE SONNET 4.6" src="assets/readme/stats-v2-light.svg" width="100%">
+</picture>
+
+<br>
 
 ## // 01 WHAT IT DOES
 
-- Runs a multi-role debate on a proposition and ends with a verdict. **LangGraph** orchestrates the roles; **Claude Sonnet 4.6** plays every role.
-- Grounds the arguments in live web evidence rather than model memory alone: the proposer and the critic have **web research tools** (Tavily search + extract) and use them via a hand-rolled ReAct loop.
-- Captures every tool call, every ReAct iteration and every decision with dual tracing to **LangSmith** and **Langfuse**.
-- Is a personal learning playground for getting hands-on with LangChain / LangGraph, agent tool use, and modern LLM observability.
+<img alt="01 WHAT IT DOES. FIVE ROLES. ONE VERDICT." src="assets/readme/divider-what-v2.svg" width="100%">
 
-Given a proposition, it runs a structured Oxford-Union-style debate. Five roles share one Claude model; each has its own system prompt and temperature:
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/features-v2-dark.svg">
+  <img alt="DEBATE: Five roles on one Claude model. The moderator frames, proposer and critic argue, the judge rules. Max 3 rounds by default. RESEARCH: Proposer and critic search the live web with Tavily, up to 4 tool calls per turn. Sources appear as inline links. TRACE: Every call goes to LangSmith and Langfuse at the same time. Same run, two UIs. Tool errors stay visible." src="assets/readme/features-v2-light.svg" width="100%">
+</picture>
 
-- **Setup** — initialises the state.
-- **Moderator (opening)** — frames a sharp focus question from the topic.
-- **Proposer** — argues *for* the proposition, engages directly with the critic's previous turn. **Has research tools.**
-- **Critic** — argues *against*, must steelman the proposer's position before attacking. **Has research tools.**
-- **Moderator (distillation)** — between rounds, distils agreement/disagreement and poses a sharper follow-up.
-- **Judge** — at the end of each round, decides whether to continue or emit a verdict. Honors an optional `max_rounds` cap.
+- Five roles share one **Claude Sonnet 4.6** model. Each role has its own system prompt and temperature.
+- The moderator opens with a sharp focus question, then distils each round into agreement, disagreement and a sharper follow-up.
+- The proposer argues for, the critic argues against. Both engage the other side directly. Both have research tools.
+- Each debater turn runs a ReAct loop: up to `MAX_TOOL_CALLS = 4` calls to `tavily_search` / `tavily_extract`, then prose. Sources appear inline as `[claim](https://url)` links.
+- The judge ends each round: continue, or emit a verdict. An optional `max_rounds` cap (default 3) is defence in depth.
+- Output: the full transcript, a `VERDICT:` line, and both trace URLs. An excerpt is in [docs/REFERENCE.md](docs/REFERENCE.md).
 
-The graph loops through proposer → critic → moderator-distill → judge until the judge rules or the cap is hit. Inside `proposer` and `critic`, each turn runs a **ReAct tool-call loop**: the LLM can call `tavily_search` / `tavily_extract` up to `MAX_TOOL_CALLS=4` times before producing its final prose. Sources appear inline as markdown links `[claim](https://url)`.
-
-### Example output (excerpt)
-
-```
-TOPIC: Is transparent algorithmic curation preferable to editorial human curation...
-[MODERATOR, round 0]
-Should news platforms be required to replace editorial human curation with
-transparent algorithmic curation, given that algorithms can be audited for bias
-while human editors cannot be held to the same standard of systematic accountability?
-
-[PROPOSER, round 1]
-## The Case for Transparent Algorithmic Curation
-The core claim is straightforward: transparent algorithmic curation is preferable...
-
-[CRITIC, round 1]
-## Counter-Claim: Auditability Is Not Accountability, and Transparency Is Not Neutrality
-The proposer has constructed the strongest version of the algorithmic case...
-
-[JUDGE, round 2]
-VERDICT: The critic carried the debate on the motion as framed. The proposer's
-case rested on the structural superiority of auditable, correctable algorithmic
-failure, but the critic successfully narrowed this to a contingent empirical
-claim about interpretability that has not been discharged for production systems
-at operational scale...
-```
-
-Debate outcome, full transcript, and both trace URLs are printed on completion.
+<br>
 
 ## // 02 QUICK START
 
-You'll need accounts at four services:
+<img alt="02 QUICK START. FIVE KEYS. ONE COMMAND." src="assets/readme/divider-start-v2.svg" width="100%">
 
-1. **Anthropic** — `console.anthropic.com`, get an API key. Costs ~$0.10–0.20 per full debate on Sonnet 4.6 with tools (up from ~$0.05 without — tool calls inflate context).
-2. **LangSmith** — `smith.langchain.com`. Free tier: 5k traces/month.
-3. **Langfuse** — `cloud.langfuse.com` (EU) or `us.cloud.langfuse.com` (US). Free tier: 50k observations/month.
-4. **Tavily** — `tavily.com`. Free tier: 1,000 credits/month (1 credit per basic search or extract). Budget per debate is ≤24 calls, so ~40+ debates/month comfortably.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/start-v2-dark.svg">
+  <img alt="Terminal: $ git clone https://github.com/VelimirMueller/lab-debater.git | $ cd lab-debater && pip install -r requirements.txt | $ cp .env.example .env   # add 5 API keys | $ python main.py &quot;Should remote work be the default?&quot;" src="assets/readme/start-v2-light.svg" width="100%">
+</picture>
 
-Then:
+Four accounts, five keys:
+
+- **Anthropic** — [console.anthropic.com](https://console.anthropic.com). One full debate costs about $0.10–0.20 on Sonnet 4.6 with tools, about $0.05 without.
+- **LangSmith** — [smith.langchain.com](https://smith.langchain.com). Free tier: 5k traces per month.
+- **Langfuse** — [cloud.langfuse.com](https://cloud.langfuse.com) (EU) or [us.cloud.langfuse.com](https://us.cloud.langfuse.com) (US). Free tier: 50k observations per month.
+- **Tavily** — [tavily.com](https://tavily.com). Free tier: 1,000 credits per month, one credit per basic search or extract. One debate budgets ≤ 24 calls, so 40+ debates fit.
 
 ```bash
 # clone, enter
-git clone https://github.com/VelimirMueller/langchain_debater.git
-cd langchain_debater
+git clone https://github.com/VelimirMueller/lab-debater.git
+cd lab-debater
 
 # Python 3.13+ (ideally via uv, pyenv, or a PyCharm venv)
 python -m venv .venv
@@ -91,212 +91,115 @@ cp .env.example .env
 python main.py "Should remote work be the default for knowledge workers?"
 ```
 
-Output: the full transcript, a `VERDICT:` line, and two trace URLs. Open both.
-
 ### What leaves your machine
 
-Tracing is **on by default** (`LANGSMITH_TRACING=true` in `.env.example`, plus the Langfuse callback in `main.py`). Every run sends the topic, all prompts, every model reply, and the raw Tavily results — including full scraped page text from `tavily_extract` — to LangSmith and Langfuse. Do not debate anything you would not paste into those dashboards. To run without LangSmith, set `LANGSMITH_TRACING=false`; Langfuse is attached explicitly in `build_run_config()`.
+- Tracing is **on by default**: `LANGSMITH_TRACING=true` in `.env.example`, plus the Langfuse callback in `main.py` (`build_run_config()`).
+- Every run sends the topic, all prompts, every model reply and the raw Tavily results — including full page text from `tavily_extract` — to LangSmith and Langfuse. Do not debate anything you would not paste into those dashboards.
+- Set `LANGSMITH_TRACING=false` to run without LangSmith.
+- Scraped pages go back into the model as tool results, so a page can carry instructions aimed at the LLM (indirect prompt injection). Acceptable for a local toy with read-only tools. Keep it in mind before giving the agent tools that act.
 
-Scraped web pages go straight back into the model as tool results, so a page can carry instructions aimed at the LLM (indirect prompt injection). That is acceptable for a local toy whose only output is a printed transcript — the tools are read-only — but keep it in mind before giving the agent tools that act.
+<br>
 
 ## // 03 HOW IT WORKS
 
+<img alt="03 HOW IT WORKS. ONE GRAPH. ONE LOOP." src="assets/readme/divider-how-v2.svg" width="100%">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/flow-v2-dark.svg">
+  <img alt="MODERATOR -> PROPOSER -> CRITIC -> JUDGE. The judge loops the graph until a verdict. The max_rounds cap (3) is defence in depth." src="assets/readme/flow-v2-light.svg" width="100%">
+</picture>
+
 ```text
-  python main.py "<proposition>"
-     │  load .env · check keys · build_graph() · build_run_config()
-     ▼
-  ┌─────────────────────────────┐  tool_calls   ┌────────────────────┐
-  │  LangGraph StateGraph       │ ────────────▸ │  Tavily            │
-  │  setup · moderator          │ ◂──────────── │  search · extract  │
-  │  proposer · critic  (ReAct) │  ToolMessage  └────────────────────┘
-  │  moderator · judge          │
-  │  verdict set? ── no ─▸ loop │  invoke()     ┌────────────────────┐
-  │               └─ yes ─▸ END │ ────────────▸ │  Claude Sonnet 4.6 │
-  └──────────────┬──────────────┘  retry-on-429 └────────────────────┘
-                 │  every node, LLM call and tool call is a span
-         ┌───────┴─────────┐
-         ▼                 ▼
-  ┌──────────────┐  ┌──────────────┐
-  │  LangSmith   │  │  Langfuse    │
-  │  env vars    │  │  callback    │
-  └──────────────┘  └──────────────┘
-
-  stdout ◂── transcript · VERDICT: line · two trace URLs
+ setup ─▶ moderator (opens: frames the question)
+              │
+   ┌─────────────────────┐
+   │ proposer  ▸ tavily  │  argues for the motion,
+   │     │               │  engages the critic
+   │     ▼               │
+   │ critic    ▸ tavily  │  argues against, steelmans
+   │     │               │  the proposer
+   │     ▼               │
+   │ moderator (distill) │  distils the round, asks
+   │     │               │  a sharper follow-up
+   │     ▼               │
+   │ judge               │  continue or VERDICT
+   └────────┬────────────┘
+            │ yes: loop back to proposer
+            ▼ no
+           END
 ```
 
-### Architecture
+- One LangGraph `StateGraph`, six nodes, one conditional edge. The moderator is one function registered at two positions (`moderator_open`, `moderator_distill`); it branches on `len(transcript) == 0`.
+- Termination lives in state, not in a counter: `verdict: str | None` is the single source of truth. The judge parses its own output to set it. `max_rounds` is defence in depth.
+- ReAct loops run inside the debater nodes (`_run_with_tools()` in [debate/nodes.py](debate/nodes.py)). Moderator, judge and setup stay pure-LLM — they arbitrate structure, not evidence.
+- Each LLM call carries a `run_name` like `proposer-argument-r1`. ReAct iterations add `-iter0`, `-iter1`, …
+- Design history: [docs/superpowers/specs/](docs/superpowers/specs/) and [docs/superpowers/plans/](docs/superpowers/plans/). Full reference: [docs/REFERENCE.md](docs/REFERENCE.md).
 
-The whole agent is a LangGraph `StateGraph` with six nodes and one conditional edge:
-
-```
-                  ┌─────────┐
-  START ─▶ setup ─▶moderator│ (opens: frames question)
-                  └────┬────┘
-                       ▼
-                 ┌─────────┐
-           ┌────▶│proposer │
-           │     └────┬────┘
-           │          ▼
-           │     ┌─────────┐
-           │     │ critic  │
-           │     └────┬────┘
-           │          ▼
-           │     ┌─────────┐
-           │     │moderator│ (distils round, poses sharper follow-up)
-           │     └────┬────┘
-           │          ▼
-           │     ┌─────────┐
-           │     │ judge   │ (continue? or emit VERDICT)
-           │     └────┬────┘
-           │          │
-           │    ┌─────┴─────┐
-           └────│ continue? │───▶ END
-                └───────────┘
-```
-
-Notable design details:
-
-- **Single moderator function, two graph positions.** `moderator_node` is registered as both `moderator_open` and `moderator_distill`. It branches internally on `len(transcript) == 0`. This is the idiomatic LangGraph pattern for reusing a callable across flow positions.
-- **Termination via state, not a counter.** `verdict: str | None` in state is the single source of truth for "are we done?" — the judge parses its own output to set it. A `max_rounds` cap is defence-in-depth.
-- **Per-node trace labels.** Each LLM call inside a node is tagged with a `run_name` like `proposer-argument-r1`, so you can filter traces by role-and-round in the UI. Tool-using turns add `-iter0`, `-iter1`, … suffixes for each ReAct iteration.
-- **ReAct loops inside debater nodes.** `proposer` and `critic` are single nodes in the graph, but internally each runs a tool-call loop (`LLM → tool_calls → ToolMessages → LLM → …`) until the LLM produces prose or `MAX_TOOL_CALLS=4` is hit. The moderator, judge, and setup stay pure-LLM — they arbitrate structure, not evidence.
-
-For the full design and decision history, see [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
-
-### Project structure
-
-```
-.
-├── .env.example            # env template
-├── .gitignore
-├── main.py                 # entry point: env + CLI + graph invocation
-├── requirements.txt
-├── debate/
-│   ├── __init__.py
-│   ├── state.py            # DebateState + Turn TypedDicts
-│   ├── prompts.py          # 5 system prompts — main iteration surface
-│   ├── tools.py            # Tavily search + extract as LangChain Tool instances
-│   ├── rate_limit.py       # retry-on-429 guardrail around ChatAnthropic.invoke()
-│   ├── nodes.py            # node functions + model factory + ReAct loop helper
-│   └── graph.py            # build_graph() — topology
-└── docs/
-    └── superpowers/
-        ├── specs/          # design doc with trade-offs and rationale
-        └── plans/          # task-by-task implementation plan
-```
-
-Each module has one responsibility:
-
-- `state.py` — types only, no logic.
-- `prompts.py` — constants only, no imports beyond docstring. **This is where you iterate most** when tuning voice.
-- `tools.py` — Tavily configuration, isolated from orchestration so retrieval knobs (`max_results`, `search_depth`) don't bleed into `nodes.py`.
-- `rate_limit.py` — reactive retry-on-429 guardrail wrapping every `ChatAnthropic.invoke()` call. Sleep duration honours the `retry-after` header when present, exponential backoff otherwise. Knobs via `.env` (`RATE_LIMIT_*`). It stacks on the Anthropic SDK's own retries (default 2 per call, not visible as spans), so a long 429 storm costs up to 3 × (`RATE_LIMIT_MAX_RETRIES` + 1) requests.
-- `nodes.py` — node functions that read state + config, call the LLM, return state deltas. Also houses `_run_with_tools()` (the ReAct loop) and `MAX_TOOL_CALLS`. The model factory is here too.
-- `graph.py` — short but architecturally important. Registers nodes, wires edges, compiles.
-- `main.py` — thin entry point: load env, validate keys, build graph, invoke, print.
+<br>
 
 ## // 04 USAGE
 
-### Web research (how the debaters scrape online info)
+<img alt="04 USAGE. THE KNOBS, IN ONE PLACE." src="assets/readme/divider-usage-v2.svg" width="100%">
 
-Only **proposer and critic** have tools. Moderator and judge stay pure-LLM — they arbitrate the debate; they don't gather evidence.
+### The research tools
 
-Each debater turn runs a hand-rolled ReAct loop inside `_run_with_tools()` in `debate/nodes.py`:
+- `tavily_search` — 4 results with `title`, `url` and a ~500-char snippet. Usually the first call of a turn.
+- `tavily_extract` — the full page as clean markdown. For when a snippet is too thin for a proper quote.
+- Both come from [langchain-tavily](https://pypi.org/project/langchain-tavily/). Retrieval knobs live in one place, [debate/tools.py](debate/tools.py): `max_results=4`, `search_depth="basic"`, `include_answer=False`.
+- At the cap, the loop forces one clean close with the tools still bound and `tool_choice={"type": "none"}` — Anthropic rejects a history with `tool_use` blocks when no tools are defined.
+- Tool errors do not crash the debate. They surface as `ToolMessage(content="Tool error: ...")` and stay visible in both tracers. The rate-limit day is not hidden.
 
-1. Invoke the LLM on `[SystemMessage, HumanMessage, …]` with tools bound via `.bind_tools([search, extract])`.
-2. If the response has no `tool_calls`, return its prose — that's the final argument.
-3. Otherwise append the `AIMessage` (tool_calls intact), execute each call, append results as `ToolMessage`s, loop.
-4. Hard cap at `MAX_TOOL_CALLS = 4`. Overrun → force one more invocation with the tools still bound but `tool_choice={"type": "none"}` ("use only the evidence above") to produce a clean close. The tools must stay bound: Anthropic rejects a history with `tool_use` blocks when no tools are defined.
+### Environment
 
-Two tools, both from [`langchain-tavily`](https://pypi.org/project/langchain-tavily/):
+`.env.example` documents every key and its default:
 
-| Tool | Returns | When the LLM picks it |
-|---|---|---|
-| `tavily_search` | 4 results with `title`, `url`, ~500-char snippet | First call of a turn; snippets are often enough for citation. |
-| `tavily_extract` | Full page as clean markdown | Only when a snippet is too thin for a proper quote. |
+- `ANTHROPIC_API_KEY`, `TAVILY_API_KEY` — the model and the search.
+- `LANGSMITH_TRACING`, `LANGSMITH_API_KEY`, `LANGSMITH_PROJECT`, `LANGSMITH_ENDPOINT` — LangSmith. EU accounts must set the EU endpoint; a wrong region means 403 on `/runs/multipart` uploads.
+- `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` — Langfuse.
+- `RATE_LIMIT_MAX_RETRIES`, `RATE_LIMIT_MAX_SLEEP_SECONDS`, `RATE_LIMIT_BASE_SLEEP_SECONDS` — the 429 guardrail in [debate/rate_limit.py](debate/rate_limit.py). It honours the `retry-after` header, backs off exponentially otherwise, and stacks on the Anthropic SDK's own retries (default 2 per call): a long 429 storm costs up to 3 × (`RATE_LIMIT_MAX_RETRIES` + 1) requests.
 
-Sources appear in the transcript as inline markdown links `[claim](https://url)`. Citation discipline is enforced via prompt: fabricated URLs are explicitly forbidden.
+### Structure
 
-**Tool errors don't crash the debate** — they're caught at the loop level, surfaced as `ToolMessage(content="Tool error: ...")`, and the prompt instructs the LLM to argue from principle without apologising. Errors **stay visible** in LangSmith/Langfuse — the rate-limit day isn't hidden, you'll see the 429 span.
+- [debate/prompts.py](debate/prompts.py) — five system prompts. This is where you iterate most when tuning voice.
+- [debate/nodes.py](debate/nodes.py) — node functions, the model factory, the ReAct loop, `MAX_TOOL_CALLS`.
+- [debate/graph.py](debate/graph.py) — topology. [debate/state.py](debate/state.py) — types only, no logic.
+- [main.py](main.py) — thin entry point: env, CLI, graph invocation, printing.
 
-See [`debate/tools.py`](debate/tools.py) for retrieval knobs (`max_results=4`, `search_depth="basic"`, `include_answer=False`) — tune in one place.
+### Experiments
 
-### Stack
+Iterations are cheap: edit, run, inspect trace, repeat. Ten documented tweaks — prompts, termination rule, `max_rounds`, `MAX_TOOL_CALLS`, `search_depth="advanced"`, model per role, a new role, tools for the judge — are listed in [docs/REFERENCE.md](docs/REFERENCE.md).
 
-| Piece | Why |
-|---|---|
-| **LangGraph** | State machine for agent orchestration. Modern replacement for `AgentExecutor`. Gives inspectable per-node trace spans. |
-| **langchain-anthropic** | Claude integration. Currently points at `claude-sonnet-4-6`. |
-| **langchain-tavily** | `TavilySearch` + `TavilyExtract` as LangChain `Tool` instances. Bound to debater models via `.bind_tools()`; auto-trace as their own spans. |
-| **Tavily** | Web search + page-extract backend. LLM-friendly API: pre-trimmed snippets for search, clean markdown for extract. |
-| **LangSmith** | Hosted tracing. Auto-attaches via env vars — zero code. Best in class for LangChain-native observability. |
-| **Langfuse** | Alternative hosted tracing, attached via an explicit callback handler. Open-source, self-hostable. |
-| **python-dotenv** | Loads `.env` before LangChain imports so LangSmith's auto-attach actually sees the env vars. |
+### Scope
 
-Both tracers are wired simultaneously. This is *on purpose* — it demonstrates that tracing in LangChain is callback-based and vendor-neutral; you can A/B compare the UIs from the same run.
+- Validation is mostly manual, via traces. `tests/` holds offline regression tests for the forced-close and judge-cap edge paths and the rate-limit guardrail.
+- No persistence, no UI, no API (CLI only), no streaming, no tool caching, no cross-turn source dedup, no multi-user sessions.
+- Tools are scoped to proposer and critic (Approach 1). Approach 2 — the judge as fact-checker with receipts — is mapped in [the Tavily design spec](docs/superpowers/specs/2026-04-21-tavily-tool-use-design.md), not wired in.
+- Fork freely.
 
-### Reading the traces
-
-You'll see the same run from two angles.
-
-**LangSmith** — run list shows `debate:<first-40-chars-of-topic>`. Open a run; the trace tree nests: `LangGraph` root → `setup` → `moderator_open` → `proposer` → `critic` → ... Each LLM call is a child span labeled with `role-action-rN` (e.g., `proposer-argument-r1`). Click any span for inputs, outputs, token counts, cost, latency. Filter by tags (`debate`, `experiment:v1`) or metadata (`prompts_version`, `max_rounds`).
-
-**Langfuse** — same shape, different UI. The Observations table gives you a flat per-span view (every node and LLM call). The Trace view gives you the tree.
-
-Things worth noticing in both UIs:
-
-- `judge_router` outputs "continue" or "end" — the routing decision is a captured span of its own.
-- `langgraph_checkpoint_ns` in metadata — LangGraph adds it for free; shows exact graph position.
-- `ls_temperature` varies by role: 0.7 for proposer/critic (creative), 0.3 for moderator/judge (consistent).
-- `tavily_search` / `tavily_extract` — every tool call is its own child span under the debater node, with the query/URL as input and the raw JSON response as output. Latency and cost attached.
-- `proposer-argument-r1-iter0`, `-iter1`, … — the per-iteration run names inside a ReAct loop. `iterN` tells you how many rounds the LLM took before producing prose.
-- `-forced-close` — only appears when `MAX_TOOL_CALLS` was exhausted. Rare; flag as pathological and tune prompts.
-- Tags now include `tools:v1`; metadata has `max_tool_calls`, `search_provider`, and `prompts_version: v2`. Filter on these to A/B v1 (pre-tools) vs v2 (tools) runs on the same topic.
-
-### What to experiment with
-
-Iterations are cheap. The feedback loop is: edit → run → inspect trace → repeat.
-
-| Tweak | Where | What you'll learn |
-|---|---|---|
-| Rewrite a prompt | `debate/prompts.py` | How much voice/quality depends on prompt wording. Bump `prompts_version` in `main.py` metadata so you can compare versions in traces. |
-| Soften the "always search" line | `PROPOSER_SYSTEM` / `CRITIC_SYSTEM` | The current prompt says *"Open your turn with one tavily_search query"* — pushes search even on ethics topics. Soften to *"search if you need evidence"* and compare tool-call counts in traces. |
-| Change termination rule | `judge_node` in `debate/nodes.py` | Early-stop vs always-run-max-rounds: does forcing more rounds produce richer debates? Measure avg-rounds-to-verdict in traces. |
-| Try a new topic | `python main.py "..."` | How the moderator's opening question shapes the debate's entire trajectory. |
-| Tweak `max_rounds` | `main.py` (hardcoded to 3) | Does a 5-round debate converge or just repeat? |
-| Tweak `MAX_TOOL_CALLS` | `debate/nodes.py` | 2 forces laser-focused queries; 8 invites loops. Does more research mean better arguments, or just more cost? |
-| Toggle `search_depth="advanced"` | `debate/tools.py` | 2× Tavily credit cost per search. Does it meaningfully improve citation quality or just burn credits? |
-| Swap model per role | `_ROLE_TEMPERATURES` + `_model_for` | Try Haiku for moderator (cheap/fast) + Opus for judge (deep reasoning). Cost vs quality trade-off in traces. |
-| Add a new role | `debate/nodes.py` + `debate/graph.py` | E.g., a "devil's advocate" that introduces a fresh angle mid-round. Tests your understanding of node registration + conditional edges. |
-| Extend tools to the judge (Approach 2) | `debate/nodes.py` + prompts | Judge becomes a fact-checker with receipts. The full migration is mapped in [`docs/superpowers/specs/2026-04-21-tavily-tool-use-design.md`](docs/superpowers/specs/2026-04-21-tavily-tool-use-design.md). |
-
-### License
-
-MIT — see [`LICENSE`](LICENSE). Do whatever you want with it.
+<br>
 
 ## // 05 STATUS
 
-| | |
-|---|---|
-| 🟢 **Experiment** | learning playground, no version |
-| Tests | `pip install -r requirements-dev.txt && python -m pytest` |
-| CI | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) |
+<img alt="05 STATUS. WHAT WORKS. WHAT DOES NOT." src="assets/readme/divider-status-v2.svg" width="100%">
 
-### Scope / non-goals
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/status-v2-dark.svg">
+  <img alt="debate graph, six nodes: working. tavily search + extract: working, 4 calls per turn. dual tracing: LangSmith + Langfuse. rate-limit guardrail: working. offline tests: forced-close, judge cap, rate limit. streaming, UI, persistence: out of scope" src="assets/readme/status-v2-light.svg" width="100%">
+</picture>
 
-Deliberately out of scope — this is a learning playground, not a product:
+```bash
+pip install -r requirements-dev.txt && python -m pytest
+```
 
-- No broad test suite — validation is mostly manual, via traces. `tests/` holds only offline regression tests for the forced-close and judge-cap edge paths and the rate-limit guardrail (`pip install -r requirements-dev.txt && python -m pytest`).
-- No persistence (each run is ephemeral).
-- No UI or API — CLI only.
-- No streaming output (the full transcript prints on completion).
-- No tool caching — same Tavily query costs a fresh credit each run.
-- No cross-turn source dedup (the agent may re-fetch the same URL it pulled a round ago).
-- Tool use scoped to proposer + critic only (Approach 1 / narrow). Extending to the judge for fact-checking is Approach 2; the spec maps it out but it's not wired in.
-- No multi-user session handling.
+- CI — [`.github/workflows/tests.yml`](.github/workflows/tests.yml): the same pytest on every push and PR.
+- [LICENSE](LICENSE) — MIT. Do whatever you want with it.
 
-If you want to extend into any of those, fork freely.
+<br>
+
+```text
+-- EOF ------------------------------------------- THE JUDGE RESTS --
+```
 
 ---
 
-<sub>VM. studio / vlm · open source · look per <code>vm-brand</code> playbook</sub>
+<sub>VM. studio / lab · open source · look per <code>vm-brand</code> playbook · [MIT](LICENSE) © 2026 Velimir Mueller</sub>

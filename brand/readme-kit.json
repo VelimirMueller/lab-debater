@@ -1,0 +1,44 @@
+{
+  "group": "lab",
+  "version": "v2",
+  "dividers": [
+    {"key": "what",   "index": "01", "title": "WHAT IT DOES", "caption": "FIVE ROLES. ONE VERDICT.",   "art": "strip-lab-1"},
+    {"key": "start",  "index": "02", "title": "QUICK START",  "caption": "FIVE KEYS. ONE COMMAND.",     "art": "strip-lab-2"},
+    {"key": "how",    "index": "03", "title": "HOW IT WORKS", "caption": "ONE GRAPH. ONE LOOP.",        "art": "strip-lab-3"},
+    {"key": "usage",  "index": "04", "title": "USAGE",        "caption": "THE KNOBS, IN ONE PLACE.",    "art": "strip-lab-4"},
+    {"key": "status", "index": "05", "title": "STATUS",       "caption": "WHAT WORKS. WHAT DOES NOT.",  "art": "strip-lab-5"}
+  ],
+  "panels": [
+    {"key": "stats", "type": "stats", "title": "LAB-DEBATER IN NUMBERS", "items": [
+      {"value": "6", "label": "GRAPH NODES"},
+      {"value": "4", "label": "TOOL CALLS PER TURN"},
+      {"value": "2", "label": "TRACERS PER RUN"},
+      {"value": "1", "label": "CLAUDE SONNET 4.6"}
+    ]},
+    {"key": "features", "type": "cards", "title": "ARGUE, WITH RECEIPTS", "items": [
+      {"title": "DEBATE",  "text": "Five roles on one Claude model. The moderator frames, proposer and critic argue, the judge rules. Max 3 rounds by default."},
+      {"title": "RESEARCH", "text": "Proposer and critic search the live web with Tavily, up to 4 tool calls per turn. Sources appear as inline links."},
+      {"title": "TRACE",   "text": "Every call goes to LangSmith and Langfuse at the same time. Same run, two UIs. Tool errors stay visible."}
+    ]},
+    {"key": "start", "type": "terminal", "title": "QUICK START", "lines": [
+      "$ git clone https://github.com/VelimirMueller/lab-debater.git",
+      "$ cd lab-debater && pip install -r requirements.txt",
+      "$ cp .env.example .env   # add 5 API keys",
+      "$ python main.py \"Should remote work be the default?\""
+    ]},
+    {"key": "flow", "type": "flow", "title": "ONE LOOP, UNTIL THE JUDGE STOPS IT", "nodes": [
+      {"title": "MODERATOR", "sub": "frames the question"},
+      {"title": "PROPOSER", "sub": "argues for + searches", "hot": true},
+      {"title": "CRITIC", "sub": "argues against + searches"},
+      {"title": "JUDGE", "sub": "continue or verdict"}
+    ], "caption": "The judge loops the graph until a verdict. The max_rounds cap (3) is defence in depth."},
+    {"key": "status", "type": "status", "title": "WHAT WORKS TODAY", "rows": [
+      {"label": "debate graph, six nodes", "value": "working", "state": "ok"},
+      {"label": "tavily search + extract", "value": "working, 4 calls per turn", "state": "ok"},
+      {"label": "dual tracing", "value": "LangSmith + Langfuse", "state": "ok"},
+      {"label": "rate-limit guardrail", "value": "working", "state": "ok"},
+      {"label": "offline tests", "value": "forced-close, judge cap, rate limit", "state": "ok"},
+      {"label": "streaming, UI, persistence", "value": "out of scope", "state": "off"}
+    ]}
+  ]
+}

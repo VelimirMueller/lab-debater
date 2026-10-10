@@ -1,0 +1,17 @@
+{
+  "divider-what-v2.svg": "01 WHAT IT DOES. FIVE ROLES. ONE VERDICT.",
+  "divider-start-v2.svg": "02 QUICK START. FIVE KEYS. ONE COMMAND.",
+  "divider-how-v2.svg": "03 HOW IT WORKS. ONE GRAPH. ONE LOOP.",
+  "divider-usage-v2.svg": "04 USAGE. THE KNOBS, IN ONE PLACE.",
+  "divider-status-v2.svg": "05 STATUS. WHAT WORKS. WHAT DOES NOT.",
+  "stats-v2-dark.svg": "6 GRAPH NODES. 4 TOOL CALLS PER TURN. 2 TRACERS PER RUN. 1 CLAUDE SONNET 4.6",
+  "stats-v2-light.svg": "6 GRAPH NODES. 4 TOOL CALLS PER TURN. 2 TRACERS PER RUN. 1 CLAUDE SONNET 4.6",
+  "features-v2-dark.svg": "DEBATE: Five roles on one Claude model. The moderator frames, proposer and critic argue, the judge rules. Max 3 rounds by default. RESEARCH: Proposer and critic search the live web with Tavily, up to 4 tool calls per turn. Sources appear as inline links. TRACE: Every call goes to LangSmith and Langfuse at the same time. Same run, two UIs. Tool errors stay visible",
+  "features-v2-light.svg": "DEBATE: Five roles on one Claude model. The moderator frames, proposer and critic argue, the judge rules. Max 3 rounds by default. RESEARCH: Proposer and critic search the live web with Tavily, up to 4 tool calls per turn. Sources appear as inline links. TRACE: Every call goes to LangSmith and Langfuse at the same time. Same run, two UIs. Tool errors stay visible",
+  "start-v2-dark.svg": "Terminal: $ git clone https://github.com/VelimirMueller/lab-debater.git | $ cd lab-debater && pip install -r requirements.txt | $ cp .env.example .env   # add 5 API keys | $ python main.py \"Should remote work be the default?\"",
+  "start-v2-light.svg": "Terminal: $ git clone https://github.com/VelimirMueller/lab-debater.git | $ cd lab-debater && pip install -r requirements.txt | $ cp .env.example .env   # add 5 API keys | $ python main.py \"Should remote work be the default?\"",
+  "flow-v2-dark.svg": "MODERATOR -> PROPOSER -> CRITIC -> JUDGE. The judge loops the graph until a verdict. The max_rounds cap (3) is defence in depth.",
+  "flow-v2-light.svg": "MODERATOR -> PROPOSER -> CRITIC -> JUDGE. The judge loops the graph until a verdict. The max_rounds cap (3) is defence in depth.",
+  "status-v2-dark.svg": "debate graph, six nodes: working. tavily search + extract: working, 4 calls per turn. dual tracing: LangSmith + Langfuse. rate-limit guardrail: working. offline tests: forced-close, judge cap, rate limit. streaming, UI, persistence: out of scope",
+  "status-v2-light.svg": "debate graph, six nodes: working. tavily search + extract: working, 4 calls per turn. dual tracing: LangSmith + Langfuse. rate-limit guardrail: working. offline tests: forced-close, judge cap, rate limit. streaming, UI, persistence: out of scope"
+}
