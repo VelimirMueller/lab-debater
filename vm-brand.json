@@ -4,5 +4,6 @@
   "sublabel": "LANGGRAPH · TAVILY · TWO TRACERS",
   "status": "EXPERIMENT",
   "bannerVersion": "v2",
-  "art": {"file": "v2/lab-debater.png", "seed": 332}
+  "art": {"file": "v2/lab-debater.png", "seed": 332},
+  "readme": "v3"
 }
