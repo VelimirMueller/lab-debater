@@ -39,6 +39,108 @@
       {"label": "rate-limit guardrail", "value": "working", "state": "ok"},
       {"label": "offline tests", "value": "forced-close, judge cap, rate limit", "state": "ok"},
       {"label": "streaming, UI, persistence", "value": "out of scope", "state": "off"}
-    ]}
-  ]
+    ]},
+    {"key": "lead", "type": "lead", "title": "ABOUT · A MULTI-ROLE DEBATE AGENT, TRACED TWICE", "text": "**lab-debater** runs a structured, Oxford-Union-style debate about any topic you give it. Five roles share one Claude model. Two of them search the live web for evidence. Every call lands in two trace UIs. It is a learning playground. The agents do not know that."},
+    {"key": "what", "type": "notes", "title": "WHAT IT DOES", "columns": 2, "items": [{"lead": "One model, five roles", "text": "Five roles share one **Claude Sonnet 4.6** model. Each role has its own system prompt and temperature."}, {"lead": "Moderator", "text": "Opens with a sharp focus question, then distils each round into agreement, disagreement and a sharper follow-up."}, {"lead": "Proposer and critic", "text": "The proposer argues for, the critic argues against. Both engage the other side directly. Both have research tools."}, {"lead": "ReAct per debater turn", "text": "Up to `MAX_TOOL_CALLS = 4` calls to `tavily_search` / `tavily_extract`, then prose. Sources appear inline as `[claim](https://url)` links."}, {"lead": "Judge", "text": "Ends each round: continue, or emit a verdict. An optional `max_rounds` cap (default 3) is defence in depth."}, {"lead": "Output", "text": "The full transcript, a `VERDICT:` line, and both trace URLs. An excerpt is in `docs/REFERENCE.md`."}]},
+    {"key": "keys", "type": "commands", "title": "FOUR ACCOUNTS, FIVE KEYS", "rows": [{"cmd": "Anthropic", "text": "[console.anthropic.com](https://console.anthropic.com). One full debate costs about $0.10-0.20 on Sonnet 4.6 with tools, about $0.05 without."}, {"cmd": "LangSmith", "text": "[smith.langchain.com](https://smith.langchain.com). Free tier: 5k traces per month."}, {"cmd": "Langfuse", "text": "[cloud.langfuse.com](https://cloud.langfuse.com) (EU) or [us.cloud.langfuse.com](https://us.cloud.langfuse.com) (US). Free tier: 50k observations per month."}, {"cmd": "Tavily", "text": "[tavily.com](https://tavily.com). Free tier: 1,000 credits per month, one credit per basic search or extract. One debate budgets at most 24 calls, so 40+ debates fit."}]},
+    {"key": "setup", "type": "terminal", "title": "FULL SETUP · PYTHON 3.13+", "lines": ["# Python 3.13+ (ideally via uv, pyenv, or a PyCharm venv)", "$ python -m venv .venv", "$ source .venv/bin/activate   # or .venv\\Scripts\\activate on Windows", "$ pip install -r requirements.txt", "$ cp .env.example .env", "# edit .env and paste in ANTHROPIC_API_KEY, LANGSMITH_API_KEY,", "# LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, TAVILY_API_KEY.", "# Leave the other fields as-is. main.py fails fast if a required key is missing.", "$ python main.py \"Should remote work be the default for knowledge workers?\""]},
+    {"key": "privacy", "type": "notes", "title": "WHAT LEAVES YOUR MACHINE", "items": [{"lead": "Tracing is on by default", "text": "`LANGSMITH_TRACING=true` in `.env.example`, plus the Langfuse callback in `main.py` (`build_run_config()`)."}, {"lead": "Everything goes to both tracers", "text": "Every run sends the topic, all prompts, every model reply and the raw Tavily results, including full page text from `tavily_extract`, to LangSmith and Langfuse. Do not debate anything you would not paste into those dashboards."}, {"lead": "Run without LangSmith", "text": "Set `LANGSMITH_TRACING=false`."}, {"lead": "Indirect prompt injection", "text": "Scraped pages go back into the model as tool results, so a page can carry instructions aimed at the LLM. Acceptable for a local toy with read-only tools. Keep it in mind before giving the agent tools that act."}]},
+    {"key": "graph", "type": "flow", "title": "THE GRAPH · SETUP RUNS FIRST", "nodes": [{"title": "MODERATOR", "sub": "Opens: frames the question."}, {"title": "PROPOSER", "sub": "Argues for the motion, engages the critic. Tavily."}, {"title": "CRITIC", "sub": "Argues against, steelmans the proposer. Tavily."}, {"title": "MODERATOR", "sub": "Distils the round, asks a sharper follow-up."}, {"title": "JUDGE", "sub": "Continue or VERDICT.", "hot": true}], "caption": "Judge says continue: loop back to the proposer. Judge gives a verdict: END."},
+    {"key": "how", "type": "notes", "title": "DESIGN", "items": [{"lead": "One StateGraph", "text": "One LangGraph `StateGraph`, six nodes, one conditional edge. The moderator is one function registered at two positions (`moderator_open`, `moderator_distill`); it branches on `len(transcript) == 0`."}, {"lead": "Termination lives in state", "text": "Not in a counter: `verdict: str | None` is the single source of truth. The judge parses its own output to set it. `max_rounds` is defence in depth."}, {"lead": "ReAct only in debater nodes", "text": "`_run_with_tools()` in `debate/nodes.py`. Moderator, judge and setup stay pure-LLM: they arbitrate structure, not evidence."}, {"lead": "Run names", "text": "Each LLM call carries a `run_name` like `proposer-argument-r1`. ReAct iterations add `-iter0`, `-iter1`, ..."}, {"lead": "Design history", "text": "`docs/superpowers/specs/` and `docs/superpowers/plans/`. Full reference: `docs/REFERENCE.md`."}]},
+    {"key": "tools", "type": "notes", "title": "THE RESEARCH TOOLS", "items": [{"lead": "tavily_search", "text": "4 results with `title`, `url` and a ~500-char snippet. Usually the first call of a turn."}, {"lead": "tavily_extract", "text": "The full page as clean markdown. For when a snippet is too thin for a proper quote."}, {"lead": "One place for the knobs", "text": "Both come from [langchain-tavily](https://pypi.org/project/langchain-tavily/). Retrieval knobs live in `debate/tools.py`: `max_results=4`, `search_depth=\"basic\"`, `include_answer=False`."}, {"lead": "Clean close at the cap", "text": "The loop forces one clean close with the tools still bound and `tool_choice={\"type\": \"none\"}`. Anthropic rejects a history with `tool_use` blocks when no tools are defined."}, {"lead": "Tool errors do not crash the debate", "text": "They surface as `ToolMessage(content=\"Tool error: ...\")` and stay visible in both tracers. The rate-limit day is not hidden."}]},
+    {"key": "env", "type": "commands", "title": "ENVIRONMENT · .ENV.EXAMPLE DOCUMENTS EVERY KEY AND ITS DEFAULT", "rows": [{"cmd": "ANTHROPIC_API_KEY TAVILY_API_KEY", "text": "The model and the search."}, {"cmd": "LANGSMITH_TRACING LANGSMITH_API_KEY LANGSMITH_PROJECT LANGSMITH_ENDPOINT", "text": "LangSmith. EU accounts must set the EU endpoint; a wrong region means 403 on `/runs/multipart` uploads."}, {"cmd": "LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST", "text": "Langfuse."}, {"cmd": "RATE_LIMIT_MAX_RETRIES RATE_LIMIT_MAX_SLEEP_SECONDS RATE_LIMIT_BASE_SLEEP_SECONDS", "text": "The 429 guardrail in `debate/rate_limit.py`. It honours the `retry-after` header, backs off exponentially otherwise, and stacks on the Anthropic SDK's own retries (default 2 per call): a long 429 storm costs up to 3 x (`RATE_LIMIT_MAX_RETRIES` + 1) requests."}]},
+    {"key": "structure", "type": "commands", "title": "STRUCTURE", "rows": [{"cmd": "debate/prompts.py", "text": "Five system prompts. This is where you iterate most when tuning voice."}, {"cmd": "debate/nodes.py", "text": "Node functions, the model factory, the ReAct loop, `MAX_TOOL_CALLS`."}, {"cmd": "debate/graph.py", "text": "Topology."}, {"cmd": "debate/state.py", "text": "Types only, no logic."}, {"cmd": "main.py", "text": "Thin entry point: env, CLI, graph invocation, printing."}]},
+    {"key": "scope", "type": "notes", "title": "EXPERIMENTS AND SCOPE", "items": [{"lead": "Iterations are cheap", "text": "Edit, run, inspect trace, repeat. Ten documented tweaks (prompts, termination rule, `max_rounds`, `MAX_TOOL_CALLS`, `search_depth=\"advanced\"`, model per role, a new role, tools for the judge) are listed in `docs/REFERENCE.md`."}, {"lead": "Validation is mostly manual, via traces", "text": "`tests/` holds offline regression tests for the forced-close and judge-cap edge paths and the rate-limit guardrail."}, {"lead": "Not in scope", "text": "No persistence, no UI, no API (CLI only), no streaming, no tool caching, no cross-turn source dedup, no multi-user sessions."}, {"lead": "Tools for proposer and critic only (Approach 1)", "text": "Approach 2, the judge as fact-checker with receipts, is mapped in the Tavily design spec, not wired in. Spec: `docs/superpowers/specs/2026-04-21-tavily-tool-use-design.md`."}, {"lead": "Fork freely.", "text": ""}]},
+    {"key": "tests", "type": "terminal", "title": "TESTS · SAME PYTEST IN CI", "lines": ["$ pip install -r requirements-dev.txt && python -m pytest"]},
+    {"key": "ci", "type": "notes", "title": "CI AND LICENSE", "columns": 2, "items": [{"lead": "CI", "text": "`.github/workflows/tests.yml`: the same pytest on every push and PR."}, {"lead": "LICENSE", "text": "MIT. Do whatever you want with it."}]},
+    {"key": "links", "type": "buttons", "items": [{"label": "Anthropic", "sub": "console.anthropic.com", "href": "https://console.anthropic.com"}, {"label": "LangSmith", "sub": "smith.langchain.com", "href": "https://smith.langchain.com"}, {"label": "Langfuse EU", "sub": "cloud.langfuse.com", "href": "https://cloud.langfuse.com"}, {"label": "Langfuse US", "sub": "us.cloud.langfuse.com", "href": "https://us.cloud.langfuse.com"}, {"label": "Tavily", "sub": "tavily.com", "href": "https://tavily.com"}, {"label": "Reference", "sub": "docs/REFERENCE.md", "href": "docs/REFERENCE.md"}, {"label": "Specs", "sub": "docs/superpowers/specs/", "href": "docs/superpowers/specs/"}, {"label": "Plans", "sub": "docs/superpowers/plans/", "href": "docs/superpowers/plans/"}, {"label": "Tavily design spec", "sub": "2026-04-21-tavily-tool-use-design.md", "href": "docs/superpowers/specs/2026-04-21-tavily-tool-use-design.md"}, {"label": "langchain-tavily", "sub": "pypi.org", "href": "https://pypi.org/project/langchain-tavily/"}, {"label": "Retrieval knobs", "sub": "debate/tools.py", "href": "debate/tools.py"}, {"label": "CI", "sub": ".github/workflows/tests.yml", "href": ".github/workflows/tests.yml"}, {"label": "License", "sub": "MIT · LICENSE", "href": "LICENSE"}, {"label": "Plain text", "sub": "show copyable commands"}]},
+    {"key": "footer", "type": "footer", "studio": "VM. studio / lab", "text": "open source · look per vm-brand playbook · MIT © 2026 Velimir Mueller", "eof": "-- EOF -- the judge rests --"}
+  ],
+  "readme": {
+    "hero_alt": "LAB-DEBATER. Agents argue. You read the trace. Experiment. A LangGraph debate agent: five roles on one Claude model, Tavily web research, two tracers.",
+    "items": [
+      "lead",
+      "stats",
+      "divider:what",
+      "features",
+      "what",
+      "divider:start",
+      "start",
+      "keys",
+      {
+        "buttons": "links",
+        "only": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "buttons": "links",
+        "only": [
+          4,
+          5
+        ]
+      },
+      "setup",
+      {
+        "details": "links",
+        "chip": 14,
+        "code": [
+          [
+            "bash",
+            "# clone, enter\ngit clone https://github.com/VelimirMueller/lab-debater.git\ncd lab-debater\n\n# Python 3.13+ (ideally via uv, pyenv, or a PyCharm venv)\npython -m venv .venv\nsource .venv/bin/activate  # or .venv\\Scripts\\activate on Windows\npip install -r requirements.txt\n\n# keys\ncp .env.example .env\n# edit .env and paste in ANTHROPIC_API_KEY, LANGSMITH_API_KEY,\n# LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, TAVILY_API_KEY.\n# Leave the other fields as-is. main.py will fail fast if any required key is missing.\n\n# run\npython main.py \"Should remote work be the default for knowledge workers?\""
+          ]
+        ]
+      },
+      "privacy",
+      "divider:how",
+      "flow",
+      "graph",
+      "how",
+      {
+        "buttons": "links",
+        "only": [
+          6,
+          7,
+          8
+        ]
+      },
+      "divider:usage",
+      "tools",
+      "env",
+      "structure",
+      "scope",
+      {
+        "buttons": "links",
+        "only": [
+          9,
+          10,
+          11
+        ]
+      },
+      "divider:status",
+      "status",
+      "tests",
+      {
+        "details": "links",
+        "chip": 14,
+        "code": [
+          [
+            "bash",
+            "pip install -r requirements-dev.txt && python -m pytest"
+          ]
+        ]
+      },
+      "ci",
+      {
+        "buttons": "links",
+        "only": [
+          12,
+          13
+        ]
+      },
+      "footer"
+    ]
+  }
 }
