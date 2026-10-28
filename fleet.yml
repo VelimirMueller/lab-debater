@@ -1,0 +1,12 @@
+# fleet.yml: tier and visibility of this repo (STANDARD.md). Exceptions: docs/rollout.md.
+tier: library
+visibility: public
+exceptions:
+  - rule: CI-UNIT-03
+    value:
+      fail_under: 65
+    reason: graph.py and tools.py wire live LLM and Tavily calls and have no tests yet; 65 is today's level (68 % combined, 67 % lines) and only goes up.
+    expires: 2027-04-30
+  - rule: GOV-RS-02
+    value: no develop branch
+    reason: The repo is trunk-only on main until the control repo creates develop (fleet-standard#7).

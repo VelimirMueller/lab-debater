@@ -7,7 +7,7 @@ checked on the request payload langchain-anthropic would send.
 from types import SimpleNamespace
 
 import pytest
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 
 import debate.nodes as nodes
@@ -90,7 +90,9 @@ def test_forced_close_keeps_tools_bound(monkeypatch):
 
                     class Closer:
                         def invoke(self, messages, config=None):
-                            captured["payload"] = model._get_request_payload(messages, **bound.kwargs)
+                            captured["payload"] = model._get_request_payload(
+                                messages, **bound.kwargs
+                            )
                             return SimpleNamespace(content="final argument")
 
                     return Closer()

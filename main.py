@@ -50,7 +50,7 @@ def build_run_config(topic: str, max_rounds: int) -> dict:
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("Usage: python main.py \"<debate topic>\"", file=sys.stderr)
+        print('Usage: python main.py "<debate topic>"', file=sys.stderr)
         sys.exit(2)
 
     if not os.getenv("ANTHROPIC_API_KEY"):

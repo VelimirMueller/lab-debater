@@ -19,19 +19,21 @@ def _rate_limit_error(retry_after: str | None = None) -> anthropic.RateLimitErro
 @pytest.mark.parametrize(
     ("retry_after", "attempt", "expected"),
     [
-        (5.0, 0, 5.0),     # server hint wins
-        (60.0, 0, 10.0),   # server hint clamped to max
-        (0.0, 0, 1.0),     # zero hint floored
-        (None, 0, 2.0),    # backoff: base * 2**0
-        (None, 2, 8.0),    # backoff: base * 2**2
-        (None, 5, 10.0),   # backoff clamped to max
+        (5.0, 0, 5.0),  # server hint wins
+        (60.0, 0, 10.0),  # server hint clamped to max
+        (0.0, 0, 1.0),  # zero hint floored
+        (None, 0, 2.0),  # backoff: base * 2**0
+        (None, 2, 8.0),  # backoff: base * 2**2
+        (None, 5, 10.0),  # backoff clamped to max
     ],
 )
 def test_compute_sleep_seconds(retry_after, attempt, expected):
     assert rl._compute_sleep_seconds(retry_after, attempt, CFG) == expected
 
 
-@pytest.mark.parametrize(("header", "expected"), [("30", 30.0), (None, None), ("Wed, 21 Oct 2026 07:28:00 GMT", None)])
+@pytest.mark.parametrize(
+    ("header", "expected"), [("30", 30.0), (None, None), ("Wed, 21 Oct 2026 07:28:00 GMT", None)]
+)
 def test_parse_retry_after(header, expected):
     assert rl._parse_retry_after(_rate_limit_error(header)) == expected
 
@@ -80,7 +82,11 @@ def test_other_errors_are_not_retried(no_sleep):
 
 @pytest.mark.parametrize(
     ("var", "value"),
-    [("RATE_LIMIT_MAX_RETRIES", "-1"), ("RATE_LIMIT_MAX_SLEEP_SECONDS", "0"), ("RATE_LIMIT_BASE_SLEEP_SECONDS", "abc")],
+    [
+        ("RATE_LIMIT_MAX_RETRIES", "-1"),
+        ("RATE_LIMIT_MAX_SLEEP_SECONDS", "0"),
+        ("RATE_LIMIT_BASE_SLEEP_SECONDS", "abc"),
+    ],
 )
 def test_invalid_env_fails_fast(monkeypatch, var, value):
     monkeypatch.setenv(var, value)

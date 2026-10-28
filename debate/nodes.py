@@ -79,10 +79,15 @@ def _run_with_tools(
     closer = _model_for(role).bind_tools(tools, tool_choice={"type": "none"})
     forced = invoke_with_retry(
         closer,
-        messages + [HumanMessage(content=(
-            "You've used your research budget. Produce your final argument now, "
-            "using only the evidence gathered above."
-        ))],
+        messages
+        + [
+            HumanMessage(
+                content=(
+                    "You've used your research budget. Produce your final argument now, "
+                    "using only the evidence gathered above."
+                )
+            )
+        ],
         config={**config, "run_name": f"{run_name_prefix}-forced-close"},
     )
     return forced.content
@@ -120,7 +125,10 @@ def moderator_node(state: DebateState, config: RunnableConfig) -> dict:
             f"Distil this round and pose the next focus question."
         )
 
-    llm_config = {**config, "run_name": f"moderator-{'open' if is_opening else 'distill'}-r{round_n}"}
+    llm_config = {
+        **config,
+        "run_name": f"moderator-{'open' if is_opening else 'distill'}-r{round_n}",
+    }
     response = invoke_with_retry(
         _model_for("moderator"),
         [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)],
@@ -180,9 +188,7 @@ def proposer_node(state: DebateState, config: RunnableConfig) -> dict:
         run_name_prefix=f"proposer-argument-r{round_n}",
     )
 
-    return {
-        "transcript": [Turn(role="proposer", content=content, round_num=round_n)]
-    }
+    return {"transcript": [Turn(role="proposer", content=content, round_num=round_n)]}
 
 
 def critic_node(state: DebateState, config: RunnableConfig) -> dict:
@@ -202,9 +208,7 @@ def critic_node(state: DebateState, config: RunnableConfig) -> dict:
         run_name_prefix=f"critic-rebuttal-r{round_n}",
     )
 
-    return {
-        "transcript": [Turn(role="critic", content=content, round_num=round_n)]
-    }
+    return {"transcript": [Turn(role="critic", content=content, round_num=round_n)]}
 
 
 def judge_node(state: DebateState, config: RunnableConfig) -> dict:
