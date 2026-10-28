@@ -52,17 +52,11 @@ class RateLimitConfig:
         max_sleep_seconds = float(os.getenv("RATE_LIMIT_MAX_SLEEP_SECONDS", "90"))
         base_sleep_seconds = float(os.getenv("RATE_LIMIT_BASE_SLEEP_SECONDS", "2"))
         if max_retries < 0:
-            raise ValueError(
-                f"RATE_LIMIT_MAX_RETRIES must be >= 0, got {max_retries}"
-            )
+            raise ValueError(f"RATE_LIMIT_MAX_RETRIES must be >= 0, got {max_retries}")
         if max_sleep_seconds <= 0:
-            raise ValueError(
-                f"RATE_LIMIT_MAX_SLEEP_SECONDS must be > 0, got {max_sleep_seconds}"
-            )
+            raise ValueError(f"RATE_LIMIT_MAX_SLEEP_SECONDS must be > 0, got {max_sleep_seconds}")
         if base_sleep_seconds <= 0:
-            raise ValueError(
-                f"RATE_LIMIT_BASE_SLEEP_SECONDS must be > 0, got {base_sleep_seconds}"
-            )
+            raise ValueError(f"RATE_LIMIT_BASE_SLEEP_SECONDS must be > 0, got {base_sleep_seconds}")
         return cls(
             max_retries=max_retries,
             max_sleep_seconds=max_sleep_seconds,
@@ -118,7 +112,7 @@ def _compute_sleep_seconds(
     if retry_after is not None:
         sleep_s = min(retry_after, cfg.max_sleep_seconds)
     else:
-        sleep_s = min(cfg.base_sleep_seconds * (2 ** attempt), cfg.max_sleep_seconds)
+        sleep_s = min(cfg.base_sleep_seconds * (2**attempt), cfg.max_sleep_seconds)
     return max(sleep_s, 1.0)
 
 

@@ -219,7 +219,7 @@ pip install -r requirements-dev.txt && python -m pytest
 </p>
 
 <p align="center">
-<a href=".github/workflows/tests.yml"><picture><source media="(prefers-color-scheme: light)" srcset="assets/readme/links-12-v2-light.svg"><img alt="CI (.github/workflows/tests.yml)" src="assets/readme/links-12-v2-dark.svg" width="32%"></picture></a>
+<a href=".github/workflows/ci.yml"><picture><source media="(prefers-color-scheme: light)" srcset="assets/readme/links-12-v2-light.svg"><img alt="CI (.github/workflows/tests.yml)" src="assets/readme/links-12-v2-dark.svg" width="32%"></picture></a>
 <a href="LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="assets/readme/links-13-v2-light.svg"><img alt="License (LICENSE)" src="assets/readme/links-13-v2-dark.svg" width="32%"></picture></a>
 </p>
 
